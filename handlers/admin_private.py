@@ -5,7 +5,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from kbds.reply import get_keyboard
-
+# test comments from odinykt
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
