@@ -5,7 +5,6 @@ from aiogram.fsm.state import State, StatesGroup
 
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from kbds.reply import get_keyboard
-# test comments from odinykt
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -38,6 +37,23 @@ async def co2010(message: types.Message):
             sizes=(3,2)
     ),
     )
+
+
+#Хендлер РСБН и клавиатура
+@admin_router.message(F.text == "РСБН")
+async def rsbn (message: types.Message):
+    await message.answer(
+        'Выберите тип изделия РСБН',
+        reply_markup=get_keyboard(
+            'РСБН-85В', # -> изделия -> платы
+            'РСБН-85В-02',
+            'РСБН-НП',
+            'Назад',
+            placeholder='Выберите тип изделия',
+            sizes=(3,1)
+    ),
+    )
+
 @admin_router.message(F.text.in_({'ПРД', 'ППИ', 'ПКиУ','Железо'}) )
 async def details(message: types.Message):
     await message.answer(
@@ -52,20 +68,6 @@ async def details(message: types.Message):
         ),
     )
 
-#Хендлер РСБН и клавиатура
-@admin_router.message(F.text == "РСБН")
-async def rsbn (message: types.Message):
-    await message.answer(
-        'Выберите тип изделия РСБН',
-        reply_markup=get_keyboard(
-            'РСБН-85В',
-            'РСБН-85В-02',
-            'РСБН-НП',
-            'Назад',
-            placeholder='Выберите тип изделия',
-            sizes=(3,1)
-    ),
-    )
 
 #Код ниже для машины состояний (FSM)
 
