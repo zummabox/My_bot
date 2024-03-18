@@ -2,7 +2,11 @@ from aiogram import  F, types, Router
 from aiogram.filters import CommandStart, Command
 from filters.chat_types import ChatTypeFilter
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from database.orm_query import orm_get_details, orm_get_categories
+
 from kbds.reply import get_keyboard
+from kbds.inline import get_callback_btns
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(['private']))
@@ -10,14 +14,37 @@ user_private_router.message.filter(ChatTypeFilter(['private']))
 @user_private_router.message(CommandStart())
 async def start_cmd(message: types.Message):
     await message.answer(
-        "Выберите изделие с которым собираетесь работать",
+        "Выберите действие",
         reply_markup=get_keyboard(
-            "СО-2010",
-            "РСБН",
-            placeholder="Выберите изделие",
-            sizes=(2, )
+            "Отчет по деталям",
+            # placeholder="Выберите изделие",
+            sizes=(1, )
         ),
     )
+
+@user_private_router.message(F.text == "Отчет")
+async def starring_at_detail(message: types.Message, session: AsyncSession):
+        categories = await orm_get_categories(session)
+        btns = {category.name: f'category_{category.id}' for category in categories}
+        await message.answer("Выберите категорию", reply_markup=get_callback_btns(btns=btns))
+
+
+@user_private_router.callback_query(F.data.startswith('category_'))
+async def starring_at_detail(callback: types.CallbackQuery, session: AsyncSession):
+        category_id = callback.data.split('_')[-1]
+        for detail in await orm_get_details(session, int(category_id)):
+            await callback.message.answer(
+                text = f"<strong>{detail.name}\
+                </strong>\n{detail.number}\nСтатус: {detail.status}",
+                reply_markup=get_callback_btns(
+                    btns={
+                    'Удалить': f'delete_{detail.id}',
+                    'Изменить данные': f'change_{detail.id}'
+                    },
+                ),
+            )
+            await callback.answer()
+            await callback.message.answer("Полный отчет ⬆️")
 
 
 @user_private_router.message(Command('table_co2010'))
